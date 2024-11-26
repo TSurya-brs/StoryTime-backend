@@ -11,6 +11,7 @@ import { notFound, errorHandler } from "./src/middleware/errMiddleware.js";
 import languageRoute from "./src/routes/languageRoute.js";
 import categoryRoute from "./src/routes/categoryRoute.js";
 import userRoute from "./src/routes/userRoute.js";
+import cors from "cors";
 
 const port = 9000;
 const app = express();
@@ -18,6 +19,7 @@ const app = express();
 dotenv.config();
 connectdb();
 
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
