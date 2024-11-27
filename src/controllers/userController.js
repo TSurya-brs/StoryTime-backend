@@ -244,6 +244,7 @@ const updateUserProfile = async (req, res, next) => {
   }
   try {
     const user = await User.findById(req.user._id);
+    console.log("Error");
 
     if (!user) {
       const err = new Error("User not found");
