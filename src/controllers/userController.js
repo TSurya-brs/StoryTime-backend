@@ -284,6 +284,11 @@ const updatePreferedLanguage = async (req, res, next) => {
     return res.status(400).send("Please select at least one language.");
   }
 
+  // If no languages are selected, update to an empty array or null
+  if (languageIds.length === 0) {
+    req.body.languageIds = []; // You can set it to an empty array or null depending on your requirements
+  }
+
   try {
     // Find the user by their ID
     const user = await User.findById(req.user._id);
