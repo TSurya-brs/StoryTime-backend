@@ -279,6 +279,7 @@ const updateUserProfile = async (req, res, next) => {
 const updatePreferedLanguage = async (req, res, next) => {
   let { languageIds } = req.body;
 
+  // Ensure languageIds is an array (empty or with values)
   if (!Array.isArray(languageIds)) {
     languageIds = []; // Default to an empty array if languageIds is missing or invalid
   }
@@ -308,8 +309,6 @@ const updatePreferedLanguage = async (req, res, next) => {
     return next(error);
   }
 };
-
-module.exports = { updatePreferedLanguage };
 
 // 8. Updating the password
 const updatePassword = async (req, res, next) => {

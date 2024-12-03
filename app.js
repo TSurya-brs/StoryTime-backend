@@ -13,7 +13,7 @@ import categoryRoute from "./src/routes/categoryRoute.js";
 import userRoute from "./src/routes/userRoute.js";
 import cors from "cors";
 
-const port = 9000;
+const port = process.env.PORT || 9000;
 const app = express();
 
 dotenv.config();
