@@ -278,20 +278,46 @@ const updateUserProfile = async (req, res, next) => {
 // 7. Updating the prefered languages
 const updatePreferedLanguage = async (req, res, next) => {
   const { languageIds } = req.body;
-  if (!languageIds || languageIds.length === 0) {
-    res.send("Please select at least one languageId");
+
+  // Check if languageIds is provided and is an array
+  if (!Array.isArray(languageIds)) {
+    return res
+      .status(400)
+      .send("Invalid input. Expected an array of languageIds.");
   }
+
+  // If no languages are selected, send a message asking to select at least one language
+  if (languageIds.length === 0) {
+    return res.status(400).send("Please select at least one languageId.");
+  }
+
   try {
+    // Find the user by their ID
     const user = await User.findById(req.user._id);
+
     if (!user) {
+      // If user is not found, return a 404 error
       const err = new Error("User not found");
       err.statusCode = 404;
       return next(err);
     }
-    user.languages = languageIds;
+
+    // If no languages are provided (in case of edge cases), default to a predefined language (e.g., "en")
+    if (languageIds.length === 0) {
+      user.languages = ["en"]; // Default language if no language is selected
+    } else {
+      user.languages = languageIds; // Use the provided languageIds
+    }
+
+    // Save the updated user document
     await user.save();
-    res.status(200).json({ message: "Prefered Language Updated Successfully" });
+
+    // Send a success response with a 200 status code
+    res
+      .status(200)
+      .json({ message: "Preferred Language Updated Successfully" });
   } catch (error) {
+    // Catch any errors and pass them to the error handler
     return next(error);
   }
 };

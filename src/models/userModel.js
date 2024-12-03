@@ -6,7 +6,7 @@ const userSchema = mongoose.Schema(
     last_name: { type: String, default: null },
     email: { type: String, unique: true },
     password: { type: String },
-    languages: { type: Array },
+    languages: { type: [String], default: ["en"] }, // Default to ["en"] (English)
     categories: { type: Array },
     saved_stories: { type: Array },
     token: { type: String },
