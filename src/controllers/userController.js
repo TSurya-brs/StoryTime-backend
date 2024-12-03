@@ -277,42 +277,39 @@ const updateUserProfile = async (req, res, next) => {
 
 // 7. Updating the prefered languages
 const updatePreferedLanguage = async (req, res, next) => {
-  const { languageIds } = req.body;
+  let { languageIds } = req.body;
 
-  // Ensure languageIds is an array and has at least one language selected
-  if (!Array.isArray(languageIds) || languageIds.length === 0) {
-    return res.status(400).send("Please select at least one language.");
-  }
-
-  // If no languages are selected, update to an empty array or null
-  if (languageIds.length === 0) {
-    req.body.languageIds = []; // You can set it to an empty array or null depending on your requirements
+  if (!Array.isArray(languageIds)) {
+    languageIds = []; // Default to an empty array if languageIds is missing or invalid
   }
 
   try {
-    // Find the user by their ID
     const user = await User.findById(req.user._id);
 
     if (!user) {
-      // If user is not found, return a 404 error
       const err = new Error("User not found");
       err.statusCode = 404;
       return next(err);
     }
 
-    // Update user's languages
-    user.languages = languageIds; // Assign the selected languages
-    await user.save(); // Save the updated user document
+    // If languageIds is empty, set languages to the default language ["en"] or an empty array
+    if (languageIds.length === 0) {
+      user.languages = ["en"]; // Default to ["en"] if no languages selected
+    } else {
+      user.languages = languageIds; // Update with the selected languages
+    }
 
-    // Send a success response
+    await user.save();
+
     res
       .status(200)
       .json({ message: "Preferred Language Updated Successfully" });
   } catch (error) {
-    // Handle any errors
     return next(error);
   }
 };
+
+module.exports = { updatePreferedLanguage };
 
 // 8. Updating the password
 const updatePassword = async (req, res, next) => {
