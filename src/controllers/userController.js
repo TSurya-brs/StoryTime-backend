@@ -391,16 +391,16 @@ const resetPassword = async (req, res, next) => {
   if (!token) {
     const err = new Error("Invalid token");
     err.statusCode = 400;
-    return next(err);
+    return next(err); // Global error handler should handle this and send a response
   }
 
   if (!password) {
     const err = new Error("Password is required");
     err.statusCode = 400;
-    return next(err);
+    return next(err); // Global error handler should handle this and send a response
   }
 
-  //Finding the user through token
+  // Finding the user through token
   try {
     const user = await User.findOne({
       reset_password_token: token,
@@ -409,10 +409,10 @@ const resetPassword = async (req, res, next) => {
     if (!user) {
       const err = new Error("Password reset link is invalid or has expired");
       err.statusCode = 400;
-      return next(err);
+      return next(err); // Global error handler should handle this and send a response
     }
 
-    //User found so hashing the password
+    // User found, so hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
     user.password = hashedPassword;
     user.reset_password_token = undefined;
@@ -420,8 +420,9 @@ const resetPassword = async (req, res, next) => {
     await user.save();
     res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
+    console.error("Error while resetting password:", error); // Log any error during the process
     res.status(500).json({
-      error: "An error occurred while resetting the password", // ensure proper error response
+      error: "An error occurred while resetting the password", // Proper error response structure
     });
   }
 };
