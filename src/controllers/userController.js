@@ -110,7 +110,10 @@ const verifyEmail = async (req, res, next) => {
     } else {
       user.verified = true;
       await user.save();
-      return res.status(201).json("Email verified successfully,Please login");
+      return res.status(201).json({
+        status: "success",
+        message: "Email verified successfully. Please login.",
+      });
     }
   } catch (error) {
     return next(error);
