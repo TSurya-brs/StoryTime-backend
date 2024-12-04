@@ -10,81 +10,158 @@ import Language from "../models/languageModel.js";
 
 // 1.Creating user
 
+// const createUser = async (req, res, next) => {
+//   const { first_name, last_name, email, password } = req.body;
+//   // console.log(first_name, last_name, email, password);
+//   try {
+//     //Checking if any fields are empty
+//     if (!first_name || !last_name || !email || !password) {
+//       const error = new Error(
+//         "Please fill first_name,last_name,email,password in body"
+//       );
+//       error.statusCode = 404;
+//       return next(error);
+//     }
+
+//     //Checking for vaild email
+//     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+//     if (!emailRegex.test(email)) {
+//       res.status(400);
+//       const err = new Error("Invalid email");
+//       err.statusCode = 400;
+//       return next(err);
+//     }
+//     // res.send("Email is in corect format");
+
+//     //Checking if any user is already registered with the same email
+//     const userExists = await User.findOne({ email });
+//     if (userExists) {
+//       res.status(400);
+//       const err = new Error("User already exists with this email");
+//       err.statusCode = 400;
+//       return next(err);
+//     }
+//     // res.send("Email is valid, No user registered with this email");
+
+//     // //hash password
+//     const hashedPassword = await bcrypt.hash(password, 10);
+//     // res.send(hashedPassword);
+
+//     //Token generation
+//     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+//       expiresIn: "2h",
+//     });
+//     // res.send(token);
+
+//     try {
+//       const verificationEmailResponse = await sendEmailVerificationLink(
+//         email,
+//         token,
+//         first_name
+//       );
+//       if (verificationEmailResponse.error) {
+//         const err = new Error("Error sending verification email");
+//         err.statusCode = 500;
+//         return next(err);
+//       }
+
+//       // //creating a user and saving to database
+//       const user = await User.create({
+//         first_name,
+//         last_name,
+//         email,
+//         password: hashedPassword,
+//         verify_token: token,
+//         verify_token_expires: Date.now() + 7200000,
+//       });
+//       // res.status(201).send("User created successfully");
+
+//       res
+//         .status(201)
+//         .send(
+//           "Registered successfully. Please check your mail for verification link."
+//         );
+//     } catch (error) {
+//       return next(error);
+//     }
+//   } catch (err) {
+//     return next(err);
+//   }
+// };
+
 const createUser = async (req, res, next) => {
   const { first_name, last_name, email, password } = req.body;
-  // console.log(first_name, last_name, email, password);
+
   try {
-    //Checking if any fields are empty
+    // Check if any fields are empty
     if (!first_name || !last_name || !email || !password) {
       const error = new Error(
-        "Please fill first_name,last_name,email,password in body"
+        "Please fill first_name, last_name, email, and password in the body"
       );
-      error.statusCode = 404;
+      error.statusCode = 400; // Changed to 400 for Bad Request
       return next(error);
     }
 
-    //Checking for vaild email
+    // Check for a valid email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      res.status(400);
-      const err = new Error("Invalid email");
-      err.statusCode = 400;
-      return next(err);
+      const error = new Error("Invalid email format");
+      error.statusCode = 400; // Changed to 400 for Bad Request
+      return next(error);
     }
-    // res.send("Email is in corect format");
 
-    //Checking if any user is already registered with the same email
+    // Check if a user is already registered with the same email
     const userExists = await User.findOne({ email });
     if (userExists) {
-      res.status(400);
-      const err = new Error("User already exists with this email");
-      err.statusCode = 400;
-      return next(err);
+      const error = new Error("User already exists with this email");
+      error.statusCode = 400; // Changed to 400 for Bad Request
+      return next(error);
     }
-    // res.send("Email is valid, No user registered with this email");
 
-    // //hash password
+    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
-    // res.send(hashedPassword);
 
-    //Token generation
+    // Generate a token for email verification
     const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-      expiresIn: "2h",
+      expiresIn: "2h", // Token expires in 2 hours
     });
-    // res.send(token);
 
+    // Send verification email
     try {
       const verificationEmailResponse = await sendEmailVerificationLink(
         email,
         token,
         first_name
       );
+
       if (verificationEmailResponse.error) {
-        const err = new Error("Error sending verification email");
-        err.statusCode = 500;
-        return next(err);
+        const error = new Error("Error sending verification email");
+        error.statusCode = 500; // Internal Server Error
+        return next(error);
       }
 
-      // //creating a user and saving to database
+      // Create a new user and save to database
       const user = await User.create({
         first_name,
         last_name,
         email,
         password: hashedPassword,
         verify_token: token,
-        verify_token_expires: Date.now() + 7200000,
+        verify_token_expires: Date.now() + 7200000, // Token expires in 2 hours
       });
-      // res.status(201).send("User created successfully");
 
-      res
+      // Return a success response
+      return res
         .status(201)
         .send(
-          "Registered successfully. Please check your mail for verification link."
+          "Registered successfully. Please check your email for the verification link."
         );
-    } catch (error) {
-      return next(error);
+    } catch (emailError) {
+      // Handle error in email sending
+      return next(emailError);
     }
   } catch (err) {
+    // Catch any errors that occur in the try block
     return next(err);
   }
 };
